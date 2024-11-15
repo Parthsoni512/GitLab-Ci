@@ -1,0 +1,27 @@
+stages:
+- test
+- build
+- push
+
+variables:
+  IMAGE_NAME: quay.io/parth_soni/tech-summit
+
+sast:
+  stage: test
+include:
+- template: Security/SAST.gitlab-ci.yml
+
+services:
+  - docker:dind
+
+
+bulid_image:
+  stage: build
+  image: docker:latest
+
+  before_script:
+    - cd ./app
+    - docker login -u $QUAY_ROBO_USER #robo user account in quay which has access to this folder in quay  -p $QUAY_ROBO_PASS $IMAGE_NAME   #robo user pass in quay which has access to this folder in quay
+  script:
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
